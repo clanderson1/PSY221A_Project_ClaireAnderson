@@ -44,6 +44,9 @@ dim(data)
 dim(raw)
 str(data)
 
+library(labelled)
+library(codebook) 
+
 ```
 
 #Prediction 1
@@ -217,6 +220,90 @@ View(h2Data)
 
 
 
+# 7. Check the final tables
+
+```{r final_tables}
+#check rows, columns, types, and missing values in h1Data
+#one row per participant, one column per variable
+dim(h1Data)
+str(h1Data)
+head(h1Data)
+colSums(is.na(h1Data))
+table(h1Data$cot_educ,useNA="ifany")
+range(h1Data$geneqavg)
+sum(duplicated(h1Data$ResponseId))
+
+#repeat the checks for h2Data; both scores should be within 1-7
+dim(h2Data)
+str(h2Data)
+head(h2Data)
+colSums(is.na(h2Data))
+range(h2Data$commitmentavg)
+range(h2Data$attractimp)
+sum(duplicated(h2Data$ResponseId))
+```
+
+## 8. Add labels and generate codebooks
+
+The descriptions come from the original codebook and our scoring decisions.
+`compact_codebook()` adds summaries from the actual data. Knit the Rmd to
+display the formatted codebooks.
+
+```{r variable_labels}
+#add a description to each h1Data column, in column order
+#include the source codes, meaning, and units
+
+var_label(h1Data) <- c(
+  "Unique participant ID (ResponseId)",
+  "Educational Attainment: 1=None; 2=Primary; 3=Secondary; 4=High school/technical college; 5=Bachelor; 6=Master; 7=PhD/MD/JD or equivalent, Now stored as a factor",
+  "Gender equality attitudes: Attitudes about gender roles in household labor and decision-making. The three items express traditional, unequal roles, each. 1=Definitely disagree; 7=Definitely agree. Codes 2–6 are intermediate response categories. Values were reverse coded so higher values = greater gender equality endorsement.d"
+)
+
+#add a description to each h2Data column, in column order
+#include response anchors and the commitment scoring rule
+var_label(h2Data) <- c(
+  "Unique participant ID (ResponseId)",
+  "Relationship confidence, scored 1=Not at all to 5=Extremely",
+  "Importance of Looking Attractive, scored 1=not at all important to 9=extremely important"
+)
+
+```
+
+H1 includes participants with an ID, a valid education category, and complete gender eqaulity attitude data. Factor level numbers in the
+generated table are internal R positions, not the original survey codes.
+
+```{r h1_codebook}
+#generate the h1Data codebook
+compact_codebook(h1Data)
+
+```
+
+H2 includes participants with an ID, relationship status 1, 2, or 3, and
+valid nonmissing commitment in romantic love and importance of looking attractive values.
+
+```{r h2_codebook}
+#generate the h2Data codebook
+compact_codebook(h2Data)
+
+```
+
+## 9. Save the final tables
+
+```{r save}
+#create data/processed_data if needed
+dir.create("data/processed_data",recursive=T,showWarnings=F)
+
+#save h1Data and h2Data without an extra row-number column
+write.csv(h1Data,"data/processed_data/CLAProject_h1.csv",row.names=F)
+write.csv(h2Data,"data/processed_data/CLAProject_h2.csv",row.names=F)
+
+#read the files back and confirm their dimensions
+h1Saved <- read.csv("data/processed_data/CLAProject_h1.csv")
+h2Saved <- read.csv("data/processed_data/CLAProject_h2.csv")
+dim(h1Saved)
+dim(h2Saved)
+
+```
 
 
 
