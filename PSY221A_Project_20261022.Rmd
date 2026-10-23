@@ -1,0 +1,229 @@
+---
+title: "PSY221A_Project_CLA_20261022"
+output: html_document
+date: "2026-10-22"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+### 1. Load Project Data 
+```{r data}
+#load data/raw/data_doctored.csv
+raw <- read.csv("DATA/RAW/data_doctored.csv")
+
+dim(raw)
+str(raw)
+
+data <- raw[,c("ResponseId", "Sex_birth", "Relationship_status", "preference_imp_health", "preference_imp_kind", "preference_imp_physat", "preference_imp_relig", "preference_imp_financ", "preference_imp_age", "cot_educ", "Gender_Equality_1", "Gender_Equality_2", "Gender_Equality_3", "Love_11", "Love_12", "Love_13", "Love_14", "Love_15", "Attract_importance_1")]
+
+
+dim(data)
+dim(raw)
+str(data)
+
+```
+
+#Prediction 1
+H1: Categorical IV - Continuous DV
+
+Individuals with higher educational attainment will have more progressive (less traditional) gender role attitudes. 
+
+Educational attainment – The highest level of formal education reported for the respondent (cot_educ) ; Gender equality attitudes – Attitudes about gender roles in household labor and decision-making. The three items express traditional, unequal roles (Gender_Equality_1–Gender_Equality_3)
+
+#Prediction 2
+H2: Continuous-composite IV - Continuous DV
+Higher confidence in relationships will be correlated with lower reported importance of looking attractive.
+Commitment in romantic love (Love_11–Love_15) ; Importance of looking attractive (Attract_importance_1)
+
+
+### 2. Check Participant IDs
+```{r participant_ids}
+
+###count na
+sum(is.na(data$ResponseId))
+
+###count blank
+sum(data$ResponseId=="",na.rm=TRUE)
+
+###count duplicates
+sum(duplicated(data$ResponseId))
+
+###inspect records with missing or blank ids
+missingID <- which(is.na(data$ResponseId))
+print(data[missingID,])
+
+###remove the known empty record with no ID, then check the row count
+data <- data[!is.na(data$ResponseId),]
+
+summary(data$ResponseId)
+
+```
+
+### Check Educational Attainment Variable
+```{r cot_educ - Educational Attainment}
+
+table(data$cot_educ, useNA="ifany")
+
+data$cot_educ <- factor(data$cot_educ,
+                         levels = c(1,2,3,4,5,6,7),
+                         labels = c("None","Primary","Secondary", "High school/technical college", "Bachelor", "Master", "PhD/MD/JD or equivalent"))
+
+table(data$cot_educ,useNA="ifany")
+```
+
+
+### Check Gender Equality Variable 
+```{r Gender equality attitudes - "Gender_Equality_1", "Gender_Equality_2", "Gender_Equality_3"}
+
+#Define variable group
+geneq <- c("Gender_Equality_1", "Gender_Equality_2", "Gender_Equality_3")
+
+sapply(data[, geneq], class)
+
+#Make columns numeric
+data[, geneq] <- lapply(data[, geneq], as.numeric)
+
+summary(data[,geneq])
+
+# Create matching reverse-coded var columns
+geneq_rev <- c("Gender_Equality_1_rev", "Gender_Equality_2_rev", "Gender_Equality_3_rev")
+
+# Clean and reverse-code gender equity vars
+  ##1–7: Definitely disagree to Definitely agree. Before reversal, higher = stronger endorsement of traditional gender roles; after reversal, higher = greater gender equality endorsement.
+data[, geneq_rev] <- lapply(data[, geneq], function(x) {
+  num_val <- as.numeric(x)
+  cleaned_val <- ifelse(num_val >= 1 & num_val <= 7, num_val, NA)
+  
+  # Reverse-code formula for a 1-7 scale (8 - score)
+  return(8 - cleaned_val)
+})
+
+
+# Calculate the total (using reverse-coded vars)
+data$geneqtot <- rowSums(data[, geneq_rev], na.rm = FALSE)
+
+summary(data$geneqtot)
+
+#Count NAs
+colSums(is.na(data[,geneq]))
+
+table(data$geneqtot)
+
+#Calculate avg across 
+data$geneqavg <- data$geneqtot / 3
+
+table(data$geneqavg)
+
+h1Data <- data[data$geneqavg & !is.na(data$cot_educ),
+               c("ResponseId", "cot_educ" , "geneqavg")]
+
+View(h1Data)
+
+
+```
+
+
+### Check Commitment in Romantic Love Variables 
+``` {r Commitment in romantic love (Love_11–Love_15)}
+
+#Make relData for participants in a relationship 
+## (1) Dating , (2) In a committed relationship, (3) Married
+table(data$Relationship_status, useNA = "ifany")
+
+relData <- data[data$Relationship_status %in% c(1,2,3),]
+
+#Define items in variable to check responses are 1-5 
+## 1=Not at all , 5=Extremely
+likert5 <- c("Love_11", "Love_12", "Love_13", "Love_14", "Love_15")
+
+#check summaries and missing responses
+summary(relData[,likert5])
+  ##Max is 5 for each - good 
+
+colSums(is.na(relData[,likert5]))
+
+
+#inspect response frequencies for each item
+for (i in likert5) {
+  print(i)
+  print(table(relData[,i],useNA="ifany"))
+}
+  ##note right skew, ex. Love_11 1=1994 vs 5=30279
+
+#replace any codes outside 1-7 with NA
+for(i in likert5) {
+  relData[,i] <- ifelse(relData[,i] %in% 1:5, relData[,i],NA)
+}
+
+
+data$commitment <- rowSums(data[, likert5], na.rm = FALSE)
+
+table(data$commitment)
+
+#Calculate avg across 
+data$commitmentavg <- data$commitment / 5
+
+table(data$commitmentavg)
+
+```
+
+
+###Check Importance of Looking Attractive Variable
+``` {r Importance of looking attractive (Attract_importance_1)}
+#How important is it for you to look attractive? 
+## 1=not at all important , 9=extremely important
+
+table(data$Attract_importance_1, useNA="ifany")
+
+sapply(data[, "Attract_importance_1"], class)
+           
+data$attractimp <- ifelse(data$Attract_importance_1 >= 1 & 
+                            data$Attract_importance_1 <= 9, 
+                                 data$Attract_importance_1, 
+                                 NA)
+
+summary(data$attractimp)
+
+table(data$attractimp)
+
+h2Data <- data[data$commitmentavg & !is.na(data$cot_educ),
+               c("ResponseId", "commitmentavg" , "attractimp")]
+
+View(h2Data)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
