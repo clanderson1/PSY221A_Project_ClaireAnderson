@@ -1,0 +1,193 @@
+---
+title: "PSY221A_Project-DataVisualization_20261023"
+output: html_document
+date: "2026-10-23"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+```{r load package}
+library(ggplot2)
+library(ggrain)
+
+```
+
+## Load the processed data
+
+```{r loadData}
+#load processed data
+h1Data <- read.csv("DATA/processed_data/CLAProject_h1.csv")
+h2Data <- read.csv ("DATA/processed_data/CLAProject_h2.csv")
+
+View(h1Data)
+View(h2Data)
+
+
+#reorganize categorical variable
+table(h1Data$cot_educ)
+h1Data$cot_educ <- factor(h1Data$cot_educ,
+                           levels = c("None","Primary","Secondary", "High school/technical college", "Bachelor", "Master", "PhD/MD/JD or equivalent"))
+
+
+
+```
+
+## H1 - Box Plot
+
+```{r H1Box}
+#Box plot
+#The line is the median; the box covers the middle 50% of responses (Q1-Q3).
+#Whiskers reach the most extreme observations within 1.5 IQR of the box edges.
+
+h1Box <- ggplot(data=h1Data,
+                aes(x=cot_educ,
+                    y=geneqavg,
+                    fill=cot_educ))+
+  geom_boxplot()+
+  labs(x="Educational Attainment",
+       y="Attitude Towards Gender Equality",
+       title="Relationship between Educational Attainment and Gender Equality Attitude",
+       fill = "Education")+
+  theme_gray(base_size = 8)
+  
+h1Box
+
+## Can use theme_gray for gray background 
+### if do fill = "" - will make it so there's no legend 
+
+```
+
+## H1 - Violin Plot (with Box Plot)
+
+```{r H1Violin}
+#Violin Plot
+#Wider sections show where responses are more concentrated within each group.
+#The shape depends on smoothing; integer scores can create bumps.
+
+h1Viol <- ggplot(data=h1Data,
+                aes(x=cot_educ,
+                    y=geneqavg,
+                    fill=cot_educ))+
+  labs(x="Educational Attainment",
+       y="Attitude Towards Gender Equality",
+       title="Relationship between Educational Attainment and Gender Equality Attitude",
+       fill = "Education")+
+  theme_gray(base_size = 8)+
+  geom_violin()+
+  geom_boxplot(width=.12)
+            ###Have to list violin 1st & boxplot 2nd or wont show up
+h1Viol
+
+```
+
+## H1 - Raincloud Plot
+
+```{r H1Raincloud}
+#Raincloud Plot
+#A raincloud combines a half-violin, a box plot, and individual responses.
+
+h1Rain <- ggplot(data=h1Data,
+                aes(x=cot_educ,
+                    y=geneqavg,
+                    fill=cot_educ))+
+  labs(x="Educational Attainment",
+       y="Attitude Towards Gender Equality",
+       title="Relationship between Educational Attainment and Gender Equality Attitude",
+       fill = "Education")+
+  theme_gray(base_size = 6)+
+  geom_rain(alpha=.5)
+    ###alpha makes the figures slightly opaque
+  
+h1Rain
+  
+```
+
+## H2 - Scatter Plots
+
+```{r H2Scatter}
+#Scatter Plot
+table(data$commitmentavg)
+table(data$attractimp)
+h2point <- ggplot(data=h2Data,
+                aes(x=commitmentavg,
+                    y=attractimp,
+                    fill=commitmentavg))+
+  geom_point()+
+  labs(x="Confidence/Security in Relationship",
+       y="Importance of Looking Attractive",
+       title="Relationship between Security in Relationship and Importance of Looking Attractive")+
+  theme_minimal(base_size = 8) 
+
+h2point
+
+  
+
+#Plot looks weird... why? - all on top of eachother
+nrow(h2Data)
+nrow(unique(h2Data[,c("commitmentavg","attractimp")]))
+
+
+#Jitter
+
+h2jitter <- ggplot(data=h2Data,
+                  aes(x=commitmentavg,
+                      y=attractimp))+ 
+  labs(x="Confidence/Security in Relationship",
+       y="Importance of Looking Attractive",
+       title="Relationship between Security in Relationship and Importance of Looking Attractive")+
+  theme_minimal(base_size = 8)+
+  geom_jitter(width=.12, height=.04, alpha=.04, size=.6)
+
+h2jitter
+
+
+
+
+```
+
+## H2 - Smooth Line
+
+```{r}
+#Scatter Plot with line
+h2Line <- h2jitter + geom_smooth(method = "lm")
+
+h2Line
+
+```
+
+## Save figures
+
+```{r saveFigures}
+#Run after creating the plots. Save PNG files in the project's figures folder.
+
+dir.create("figures",showWarnings = FALSE)
+ggsave("figures/h1_figure_raincloud.png", plot=h1Rain, width=10, height=6, dpi=300)
+
+ggsave("figures/h2_figures_line.png", plot=h2Line, width=10, height=6, dpi=300)
+
+```
