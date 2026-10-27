@@ -8,26 +8,6 @@ date: "2026-10-22"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
-```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
-
 
 ### 1. Load Project Data 
 ```{r data}
@@ -140,6 +120,19 @@ data$geneqavg <- data$geneqtot / 3
 
 table(data$geneqavg)
 
+###JK: Coding error ###
+# data$geneqavg alone is not a missing-value check.
+# The code below produces 581 all-NA rows in your current H1 output.
+# Replace the two-line h1Data assignment below with:
+# h1Data <- data[
+#   !is.na(data$geneqavg) & !is.na(data$cot_educ),
+#   c("ResponseId", "cot_educ", "geneqavg")
+# ]
+# Then check that the unwanted rows are gone:
+# nrow(h1Data)
+# colSums(is.na(h1Data))
+###  End of comment ###
+
 h1Data <- data[data$geneqavg & !is.na(data$cot_educ),
                c("ResponseId", "cot_educ" , "geneqavg")]
 
@@ -182,6 +175,17 @@ for(i in likert5) {
 }
 
 
+###JK: Continue using relData for H2 after selecting participants in a relationship. ###
+# You created relData for relationship statuses 1, 2, and 3 and cleaned the Love items in that table.
+# The calculation below switches back to data, so it uses neither your relationship restriction nor the cleaned copies of those items.
+# To apply the inclusion rule you described, replace the commitment calculation, its table() checks, and the average calculation below with:
+# relData$commitment <- rowSums(relData[, likert5], na.rm = FALSE)
+# table(relData$commitment)
+# relData$commitmentavg <- relData$commitment / 5
+# table(relData$commitmentavg)
+# The earlier range-check code correctly uses 1:5; please change its comment from "outside 1-7" to "outside 1-5" too.
+###  End of comment ###
+
 data$commitment <- rowSums(data[, likert5], na.rm = FALSE)
 
 table(data$commitment)
@@ -199,6 +203,20 @@ table(data$commitmentavg)
 #How important is it for you to look attractive? 
 ## 1=not at all important , 9=extremely important
 
+###JK: Use relData for the attractiveness checks and cleaning as well. ###
+# This keeps both H2 variables in the same table of eligible participants.
+# Replace the attractiveness checks and cleaning below, up to but not including h2Data <-, with:
+# table(relData$Attract_importance_1, useNA = "ifany")
+# str(relData$Attract_importance_1)
+# relData$attractimp <- ifelse(
+#   relData$Attract_importance_1 >= 1 & relData$Attract_importance_1 <= 9,
+#   relData$Attract_importance_1,
+#   NA
+# )
+# summary(relData$attractimp)
+# table(relData$attractimp, useNA = "ifany")
+###  End of comment ###
+
 table(data$Attract_importance_1, useNA="ifany")
 
 sapply(data[, "Attract_importance_1"], class)
@@ -211,6 +229,22 @@ data$attractimp <- ifelse(data$Attract_importance_1 >= 1 &
 summary(data$attractimp)
 
 table(data$attractimp)
+
+###JK: Select H2 participants using the two H2 variables, not education. ###
+# As in H1, commitmentavg needs an explicit !is.na() check; the current condition produces 36,169 all-NA rows in your saved H2 table.
+# cot_educ belongs to H1 and is not needed for H2, so missing education should not exclude a participant from this hypothesis unless you give a separate reason.
+# The current condition also does not check whether attractimp is missing.
+# After making the relData changes above, replace the two-line h2Data assignment below with:
+# h2Data <- relData[
+#   !is.na(relData$commitmentavg) & !is.na(relData$attractimp),
+#   c("ResponseId", "commitmentavg", "attractimp")
+# ]
+# Check the result before saving:
+# nrow(h2Data)
+# colSums(is.na(h2Data))
+# sum(duplicated(h2Data$ResponseId))
+# With the current data and these inclusion rules, H2 should contain 56,116 rows.
+###  End of comment ###
 
 h2Data <- data[data$commitmentavg & !is.na(data$cot_educ),
                c("ResponseId", "commitmentavg" , "attractimp")]
@@ -232,6 +266,11 @@ colSums(is.na(h1Data))
 table(h1Data$cot_educ,useNA="ifany")
 range(h1Data$geneqavg)
 sum(duplicated(h1Data$ResponseId))
+
+###JK: The two H2 variables have different valid ranges. ###
+# commitmentavg should be between 1 and 5, and attractimp should be between 1 and 9.
+# Please update the comment below so your final checks use the correct expectations.
+###  End of comment ###
 
 #repeat the checks for h2Data; both scores should be within 1-7
 dim(h2Data)
@@ -261,6 +300,19 @@ var_label(h1Data) <- c(
 
 #add a description to each h2Data column, in column order
 #include response anchors and the commitment scoring rule
+
+###JK: Describe the composite as commitment in romantic love and include how you calculated it. ###
+# Love_11-15 measure commitment, so "Relationship confidence" alone does not fully describe this score.
+# Please use the variable-label examples in Section 8 of my Lab03 script as a guide for documenting the items and missing-data rule.
+# You can replace the H2 label assignment below with:
+# var_label(h2Data) <- c(
+#   "Unique participant ID (ResponseId)",
+#   "Commitment in romantic love: mean of Love_11-15, each rated 1=Not at all to 5=Extremely. No reverse coding; all five responses are required. Higher scores indicate greater commitment.",
+#   "Importance of looking attractive: 1=Not at all important to 9=Extremely important."
+# )
+# Similarly, add to the H1 gender-equality description that it is the mean of three reversed items and requires all three responses.
+###  End of comment ###
+
 var_label(h2Data) <- c(
   "Unique participant ID (ResponseId)",
   "Relationship confidence, scored 1=Not at all to 5=Extremely",
