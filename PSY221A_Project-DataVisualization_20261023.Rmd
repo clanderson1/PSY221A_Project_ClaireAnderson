@@ -6,30 +6,6 @@ editor_options:
   chunk_output_type: console
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
-```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
-
 
 ```{r load package}
 library(ggplot2)
@@ -187,6 +163,8 @@ h2Line
 
 dir.create("figures",showWarnings = FALSE)
 ggsave("figures/h1_figure_raincloud.png", plot=h1Rain, width=10, height=6, dpi=300)
+
+ggsave("figures/h1_figure_violin.png", plot=h1Viol, width=10, height=6, dpi=300)
 
 ggsave("figures/h2_figures_line.png", plot=h2Line, width=10, height=6, dpi=300)
 
