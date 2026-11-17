@@ -107,8 +107,20 @@ h1Rain
 
 ```{r H2Scatter}
 #Scatter Plot
+
+###JK: Use the H2 data for these checks. ###
+# Replace below code with:
+# table(h2Data$commitmentavg, useNA = "ifany")
+# table(h2Data$attractimp, useNA = "ifany")
+###  End of comment ###
+
 table(data$commitmentavg)
 table(data$attractimp)
+
+###JK: Label commitmentavg as relationship commitment. ###
+# This score averages Love_11-15, the commitment items. I recommend using "Relationship commitment" for the x-axis.
+###  End of comment ###
+
 h2point <- ggplot(data=h2Data,
                 aes(x=commitmentavg,
                     y=attractimp,
