@@ -1,0 +1,122 @@
+---
+title: "PSY221A_Project-QuartoDocument"
+author: "Claire Anderson"
+format:
+  html:
+    toc: true
+    code-fold: true
+execute:
+  echo: true
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r}
+#| label: load-data
+#| include: false
+library(ggplot2)
+library(ggrain)
+
+h1Data <- read.csv("DATA/processed_data/CLAProject_h1.csv")
+h2Data <- read.csv ("DATA/processed_data/CLAProject_h2.csv")
+
+h1Data$cot_educ <- factor(h1Data$cot_educ,
+                           levels = c("None","Primary","Secondary", "High school/technical college", "Bachelor", "Master", "PhD/MD/JD or equivalent"))
+
+table(h1Data$cot_educ)
+
+
+```
+
+## Hypothesis 1
+
+H1: Categorical IV - Continuous DV
+
+Individuals with higher educational attainment will have more progressive (less traditional) gender role attitudes.
+
+Educational attainment – The highest level of formal education reported for the respondent (cot_educ)
+
+Gender equality attitudes – Attitudes about gender roles in household labor and decision-making. The three items express traditional, unequal roles (Gender_Equality_1–Gender_Equality_3)
+
+### Variables and descriptive statistics
+
+- **Educational attainment (`cot_educ`):** A categorical variable with 7 groups: 1=None; 2=Primary; 3=Secondary; 4=High school/technical college; 5=Bachelor; 6=Master; 7=PhD/MD/JD or equivalent.
+
+- **Gender equality attitudes (`geneqavg`):** Gender equality attitudes: Mean of three reverse coded items on attitudes about gender roles in household labor and decision-making; all three responses required. The three items express traditional, unequal roles, each. 1=Definitely disagree; 7=Definitely agree. Codes 2–6 are intermediate response categories. Values were reverse coded so higher values = greater gender equality endorsement.
+
+```{r}
+#| label: h1-descriptives
+# Count respondents in each group.
+table(h1Data$cot_educ)
+
+# Summarize gender equality points (greater score=more positive attitude towards gender equality) separately for each group.
+by(h1Data$geneqavg, h1Data$cot_educ, summary)
+```
+
+### Graph
+
+@fig-gender-equality-attitude shows the distribution of points by educational attainment. The half-violin shows the shape of the distribution, the box summarizes the median and quartiles, and the dots represent individual responses.
+
+```{r}
+#| label: fig-gender-equality-attitude
+#| fig-cap: "Points allocated to gender equality attitude, by educational attainment."
+#| fig-width: 8
+#| fig-height: 5
+
+ggplot(h1Data, aes(x = cot_educ, y = geneqavg,
+                   fill = cot_educ)) +
+  geom_rain(alpha = 0.5, point.args = list(alpha = 0.04, size = 0.6)) +
+  labs(x = "Educational attainment", y = "Gender equality attitude (higher score = more positive attitude)") +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.text.x = element_text(size=7.5))
+```
+
+## Hypothesis 2
+
+H2: Continuous-composite IV - Continuous DV Higher confidence in relationships will be correlated with lower reported importance of looking attractive. Commitment in romantic love (Love_11–Love_15) ; Importance of looking attractive (Attract_importance_1)
+
+### Variables and descriptive statistics
+
+"Importance of looking attractive: 1=Not at all important to 9=Extremely important."
+
+- **Relationship commitment (`commitmentavg`):** The mean of `Love_11`, `Love_12`, `Love_13`, `Love_14`, and `Love_15`, each rated 1=Not at all to 5=Extremely. No reverse coding; all five responses are required. Higher scores indicate greater commitment.
+
+Love_11: I have confidence in the stability of my relationship with my partner. ; Love_12: I view my commitment to my partner as a solid one. ; Love_13: I am certain of my love for my partner. ; Love_14: I view my relationship with my partner as permanent. ; Love_15: I feel a sense of responsibility toward my partner.
+
+This dataset includes respondents who were dating, in a committed relationship, or married.
+
+- **Importance of looking attractive (`attractimp`):** A single item about the importance of looking attractive. Responses range from 1 (Not at all important) to 9 (Extremely important).
+
+```{r}
+#| label: h2-descriptives
+summary(h2Data[, c("commitmentavg", "attractimp")])
+```
+
+### Graph
+
+@fig-commitment shows the relationship between relationship commitment and importance of looking attractive. Points are jittered to make overlapping responses easier to see; the recorded scores are unchanged. The line summarizes the linear trend.
+
+```{r}
+#| label: fig-commitment
+#| fig-cap: "Relationship commitment and importance of looking attractive"
+#| fig-width: 8
+#| fig-height: 5
+
+ggplot(h2Data, aes(x = commitmentavg, y = attractimp)) +
+  geom_jitter(width = .12, height = .04, alpha = .04, size = .6) +
+  geom_smooth(method = "lm") +
+  labs(x = "Relationship commitment (1–5)",
+       y = "Attractiveness Importance (1–9)") +
+  theme_minimal()
+```
+
+### Observed trend
+
+```{r}
+#| label: correlation
+r <- cor(h2Data$commitmentavg, h2Data$attractimp, use = "complete.obs")
+round(r, 2)
+```
+
+The correlation was `{r} round(r, 2)`, indicating a very weak positive association. Respondents who reported higher relationship commitment tended to report greater importance of personally looking attractive.
