@@ -13,9 +13,11 @@ editor_options:
 # Open the project's .Rproj file before running chunks.
 # Install psych once in the Console if needed: install.packages("psych")
 
-library(readr)
-h1Data <- read_csv("DATA/PROCESSED/practice_h1.csv")
-h2Data <- read_csv("DATA/PROCESSED/practice_h2.csv")
+h1Data <- read.csv("DATA/processed_data/CLAProject_h1.csv")
+h2Data <- read.csv ("DATA/processed_data/CLAProject_h2.csv")
+
+h1Data$educ <- as.numeric((h1Data$cot_educ))
+
 
 ```
 
@@ -25,10 +27,37 @@ h2Data <- read_csv("DATA/PROCESSED/practice_h2.csv")
 # A histogram groups numerical values into intervals (bins).
 # Bar height shows how many observations fall in each interval.
 # Start by looking at the distribution before calculating summary statistics.
-hist(h1Data$preference_imp_physat)
-hist(h2Data$preference_imp_physat)
+hist(h1Data$geneqavg)
+  # Add readable labels to the same histogram.
+    hist(h1Data$geneqavg,
+         main="Distribution of gender equality attitudes",
+         xlab = "Gender equality attitudes (1-7)")
+    
+hist(h1Data$educ)
+  # Add readable labels to the same histogram.
+    hist(h1Data$educ,
+         main="Distribution of educational attainment",
+         xlab = "Educational attainment (1-7), 1=None; 2=Primary; 3=Secondary; 4=High school/technical college; 5=Bachelor; 6=Master; 7=PhD/MD/JD or equivalent",
+         cex.lab=0.4
+         )
 
-# Add readable labels to the same histogram.
+    #Histogram text size editing 
+         # cex.main=0.8, # Title size
+         # cex.lab=0.8, # X & Y axis label
+         # cex.axis=0.7, # Axis tick numbers size
+         # cex.sub = 0.7 # Subtitle size 
+  
+hist(h2Data$attractimp)
+  # Add readable labels to the same histogram.
+  hist(h2Data$attractimp,
+       main="Distribution of importance of looking attractive",
+       xlab = "Importance of looking attractive (1-9)")
+
+hist(h2Data$commitmentavg)
+    # Add readable labels to the same histogram.
+  hist(h2Data$commitmentavg,
+       main="Distribution of relationship commitment",
+       xlab = "Relationship Commitment (1-5)")
 
 
 ```
@@ -37,19 +66,41 @@ hist(h2Data$preference_imp_physat)
 
 ```{r individual_statistics}
 # Mean: add the scores and divide by the number of observed responses.
-mean(h2Data$commitment, na.rm=TRUE)
+mean(h1Data$geneqavg, na.rm=TRUE)
+mean(h1Data$educ, na.rm=TRUE)
+
+
+mean(h2Data$attractimp, na.rm=TRUE)
+mean(h2Data$commitmentavg, na.rm=TRUE)
 
 # Median: the middle score after sorting the responses.
-median(h2Data$commitment, na.rm=TRUE)
+median(h1Data$geneqavg, na.rm=TRUE)
+median(h1Data$educ, na.rm=TRUE)
+
+median(h2Data$attractimp, na.rm=TRUE)
+median(h2Data$commitmentavg, na.rm=TRUE)
 
 # Table: count how many people are in each category.
-table(h1Data$Sex_birth, useNA = "ifany")
+table(h1Data$geneqavg, useNA = "ifany")
+table(h1Data$educ, useNA = "ifany")
+
+
+table(h2Data$attractimp, useNA = "ifany")
+table(h2Data$commitmentavg, useNA = "ifany")
+
 
 # Range: return the minimum and maximum, rather than their difference.
-range(h2Data$commitment, na.rm=TRUE)
+range(h1Data$geneqavg, na.rm=TRUE)
+
+range(h2Data$attractimp, na.rm=TRUE)
+range(h2Data$commitmentavg, na.rm=TRUE)
 
 # IQR: the 75th percentile minus the 25th percentile.
-IQR(h2Data$commitment, na.rm=TRUE)
+IQR(h1Data$geneqavg, na.rm=TRUE)
+IQR(h1Data$educ, na.rm=TRUE)
+
+IQR(h2Data$attractimp, na.rm=TRUE)
+IQR(h2Data$commitmentavg, na.rm=TRUE)
 
 ```
 
@@ -57,16 +108,29 @@ IQR(h2Data$commitment, na.rm=TRUE)
 
 ```{r standardize}
 # scale() uses z = (original score - mean) / standard deviation by default.
-# Keep the original commitment scores and store the standardized values separately.
+# Keep the original importance of attractiveness scores and store the standardized values separately.
 # scale() returns a matrix; as.numeric() makes a simple numeric column.
-(h2Data$commitment - mean(h2Data$commitment,na.rm=TRUE))/sd(h2Data$commitment,na.rm=TRUE)
 
-h2Data$commitment_z <- scale(h2Data$commitment)
+# (h2Data$attractimp - mean(h2Data$attractimp,na.rm=TRUE))/sd(h2Data$attractimp,na.rm=TRUE)
+
+h2Data$attractimp_z <- scale(h2Data$attractimp)
   #this is the function that does the same thing as the above, long written out code 
 
 # Standardized scores have mean approximately 0 and standard deviation 1.
-mean(h2Data$commitment_z, na.rm=TRUE)
-sd(h2Data$commitment_z, na.rm=TRUE)
+mean(h2Data$attractimp_z, na.rm=TRUE)
+sd(h2Data$attractimp_z, na.rm=TRUE)
+
+# Standardize commitment avg var 
+h2Data$commitmentavg_z <- scale(h2Data$commitmentavg)
+  #Check 
+mean(h2Data$commitmentavg_z, na.rm=TRUE)
+sd(h2Data$commitmentavg_z, na.rm=TRUE)
+
+# Standardize gender equality attitudes avg var 
+h1Data$geneqavg_z <- scale(h1Data$geneqavg)
+  #Check
+mean(h1Data$geneqavg_z, na.rm=TRUE)
+sd(h1Data$geneqavg_z, na.rm=TRUE)
 
 ```
 
@@ -76,21 +140,28 @@ sd(h2Data$commitment_z, na.rm=TRUE)
 # Covariance describes whether two variables tend to move together.
 # Positive: higher values tend to occur together. Negative: higher values tend to accompany lower values.
 # Its size depends on the units and is not restricted to -1 through 1.
+cov(h1Data$educ, h1Data$geneqavg, use="complete.obs")
 
-cov(h2Data$commitment, h2Data$qoa, use="complete.obs")
+cov(h2Data$commitmentavg, h2Data$attractimp, use="complete.obs")
 
 # Pearson correlation expresses a linear association on a -1 to 1 scale.
+cor(h1Data$educ, h1Data$geneqavg, use="complete.obs")
 
-cor(h2Data$commitment, h2Data$qoa, use="complete.obs")
+cor(h2Data$commitmentavg, h2Data$attractimp, use="complete.obs")
 
 # Select numerical variables only; do not include participant IDs or category codes.
 
-corData <- h2Data[, c("qoa", "commitment")]
+corData1 <- h1Data[, c("educ", "geneqavg")]
+
+corData2 <- h2Data[, c("attractimp", "commitmentavg")]
 
 # A correlation matrix gives the correlation for each pair of columns.
 # The diagonal is 1 because each variable is correlated with itself.
 
-cor(corData, use="complete.obs")
+cor(corData1, use="complete.obs")
+
+cor(corData2, use="complete.obs")
+
 
 ```
 
@@ -98,13 +169,18 @@ cor(corData, use="complete.obs")
 
 ```{r combined_summaries}
 # summary() reports minimum, quartiles, median, mean, maximum, and missing counts when present.
-summary(corData)
+summary(corData1)
+
+summary(corData2)
 
 
 # psych::describe() reports n, mean, SD, median, minimum, maximum, range width (max minus min), skewness, kurtosis, and other summaries.
 # However it does not report every statistic above: compute IQR, cov(), and cor() separately.
 
-psych::describe(corData)
+psych::describe(corData1)
+
+psych::describe(corData2)
+
 
 
 ```

@@ -146,10 +146,10 @@ nrow(unique(h2Data[,c("commitmentavg","attractimp")]))
 h2jitter <- ggplot(data=h2Data,
                   aes(x=commitmentavg,
                       y=attractimp))+ 
-  labs(x="Confidence/Security in Relationship",
+  labs(x="Relationship Commitment",
        y="Importance of Looking Attractive",
-       title="Relationship between Security in Relationship and Importance of Looking Attractive")+
-  theme_minimal(base_size = 8)+
+       title="Relationship between Importance of Looking Attractive and Relationship Commitment")+
+  theme_minimal(base_size = 6)+
   geom_jitter(width=.12, height=.04, alpha=.04, size=.6)
 
 h2jitter
