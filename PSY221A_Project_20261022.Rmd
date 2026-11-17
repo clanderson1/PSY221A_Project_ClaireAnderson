@@ -2,6 +2,8 @@
 title: "PSY221A_Project_CLA_20261022"
 output: html_document
 date: "2026-10-22"
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -133,10 +135,16 @@ table(data$geneqavg)
 # colSums(is.na(h1Data))
 ###  End of comment ###
 
-h1Data <- data[data$geneqavg & !is.na(data$cot_educ),
-               c("ResponseId", "cot_educ" , "geneqavg")]
+#Remove missing values 
+h1Data <- data[
+    !is.na(data$geneqavg) & !is.na(data$cot_educ),
+    c("ResponseId", "cot_educ", "geneqavg")
+  ]
 
-View(h1Data)
+# Then check that the unwanted rows are gone:
+nrow(h1Data)
+colSums(is.na(h1Data))
+
 
 
 ```
@@ -169,7 +177,7 @@ for (i in likert5) {
 }
   ##note right skew, ex. Love_11 1=1994 vs 5=30279
 
-#replace any codes outside 1-7 with NA
+#replace any codes outside 1-5 with NA
 for(i in likert5) {
   relData[,i] <- ifelse(relData[,i] %in% 1:5, relData[,i],NA)
 }
@@ -186,14 +194,14 @@ for(i in likert5) {
 # The earlier range-check code correctly uses 1:5; please change its comment from "outside 1-7" to "outside 1-5" too.
 ###  End of comment ###
 
-data$commitment <- rowSums(data[, likert5], na.rm = FALSE)
 
-table(data$commitment)
+relData$commitment <- rowSums(relData[, likert5], na.rm = FALSE)
+table(relData$commitment)
+
 
 #Calculate avg across 
-data$commitmentavg <- data$commitment / 5
-
-table(data$commitmentavg)
+relData$commitmentavg <- relData$commitment / 5
+table(relData$commitmentavg)
 
 ```
 
@@ -217,18 +225,19 @@ table(data$commitmentavg)
 # table(relData$attractimp, useNA = "ifany")
 ###  End of comment ###
 
-table(data$Attract_importance_1, useNA="ifany")
+table(relData$Attract_importance_1, useNA = "ifany")
 
-sapply(data[, "Attract_importance_1"], class)
-           
-data$attractimp <- ifelse(data$Attract_importance_1 >= 1 & 
-                            data$Attract_importance_1 <= 9, 
-                                 data$Attract_importance_1, 
-                                 NA)
+str(relData$Attract_importance_1)
 
-summary(data$attractimp)
+relData$attractimp <- ifelse(
+   relData$Attract_importance_1 >= 1 & relData$Attract_importance_1 <= 9,
+   relData$Attract_importance_1,
+   NA
+ )
 
-table(data$attractimp)
+summary(relData$attractimp)
+table(relData$attractimp, useNA = "ifany")
+       
 
 ###JK: Select H2 participants using the two H2 variables, not education. ###
 # As in H1, commitmentavg needs an explicit !is.na() check; the current condition produces 36,169 all-NA rows in your saved H2 table.
@@ -246,10 +255,20 @@ table(data$attractimp)
 # With the current data and these inclusion rules, H2 should contain 56,116 rows.
 ###  End of comment ###
 
-h2Data <- data[data$commitmentavg & !is.na(data$cot_educ),
-               c("ResponseId", "commitmentavg" , "attractimp")]
 
-View(h2Data)
+h2Data <- relData[
+   !is.na(relData$commitmentavg) & !is.na(relData$attractimp),
+   c("ResponseId", "commitmentavg", "attractimp")
+ ]
+
+
+# Check the result before saving:
+nrow(h2Data)
+
+colSums(is.na(h2Data))
+
+sum(duplicated(h2Data$ResponseId))
+
 ```
 
 
@@ -272,7 +291,8 @@ sum(duplicated(h1Data$ResponseId))
 # Please update the comment below so your final checks use the correct expectations.
 ###  End of comment ###
 
-#repeat the checks for h2Data; both scores should be within 1-7
+#repeat the checks for h2Data
+# commitmentavg should be between 1 and 5, and attractimp should be between 1 and 9
 dim(h2Data)
 str(h2Data)
 head(h2Data)
@@ -295,8 +315,9 @@ display the formatted codebooks.
 var_label(h1Data) <- c(
   "Unique participant ID (ResponseId)",
   "Educational Attainment: 1=None; 2=Primary; 3=Secondary; 4=High school/technical college; 5=Bachelor; 6=Master; 7=PhD/MD/JD or equivalent, Now stored as a factor",
-  "Gender equality attitudes: Attitudes about gender roles in household labor and decision-making. The three items express traditional, unequal roles, each. 1=Definitely disagree; 7=Definitely agree. Codes 2–6 are intermediate response categories. Values were reverse coded so higher values = greater gender equality endorsement.d"
+  "Gender equality attitudes: Mean of three reverse coded items on attitudes about gender roles in household labor and decision-making; all three responses required. The three items express traditional, unequal roles, each. 1=Definitely disagree; 7=Definitely agree. Codes 2–6 are intermediate response categories. Values were reverse coded so higher values = greater gender equality endorsement"
 )
+
 
 #add a description to each h2Data column, in column order
 #include response anchors and the commitment scoring rule
@@ -313,11 +334,13 @@ var_label(h1Data) <- c(
 # Similarly, add to the H1 gender-equality description that it is the mean of three reversed items and requires all three responses.
 ###  End of comment ###
 
+
+# H2 label assignment below with:
 var_label(h2Data) <- c(
-  "Unique participant ID (ResponseId)",
-  "Relationship confidence, scored 1=Not at all to 5=Extremely",
-  "Importance of Looking Attractive, scored 1=not at all important to 9=extremely important"
-)
+   "Unique participant ID (ResponseId)",
+   "Commitment in romantic love: mean of Love_11-15, each rated 1=Not at all to 5=Extremely. No reverse coding; all five responses are required. Higher scores indicate greater commitment.Love_11: I have confidence in the stability of my relationship with my partner. ; Love_12: I view my commitment to my partner as a solid one. ; Love_13: I am certain of my love for my partner. ; Love_14: I view my relationship with my partner as permanent. ; Love_15: I feel a sense of responsibility toward my partner.",
+   "Importance of looking attractive: 1=Not at all important to 9=Extremely important."
+ )
 
 ```
 

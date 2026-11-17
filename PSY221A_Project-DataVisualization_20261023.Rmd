@@ -114,8 +114,9 @@ h1Rain
 # table(h2Data$attractimp, useNA = "ifany")
 ###  End of comment ###
 
-table(data$commitmentavg)
-table(data$attractimp)
+table(h2Data$commitmentavg, useNA = "ifany")
+table(h2Data$attractimp, useNA = "ifany")
+
 
 ###JK: Label commitmentavg as relationship commitment. ###
 # This score averages Love_11-15, the commitment items. I recommend using "Relationship commitment" for the x-axis.
@@ -126,9 +127,9 @@ h2point <- ggplot(data=h2Data,
                     y=attractimp,
                     fill=commitmentavg))+
   geom_point()+
-  labs(x="Confidence/Security in Relationship",
+  labs(x="Relationship Commitment",
        y="Importance of Looking Attractive",
-       title="Relationship between Security in Relationship and Importance of Looking Attractive")+
+       title="Relationship between Importance of Looking Attractive and Relationship Commitment")+
   theme_minimal(base_size = 8) 
 
 h2point
