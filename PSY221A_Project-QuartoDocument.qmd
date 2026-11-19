@@ -12,9 +12,6 @@ editor_options:
   chunk_output_type: inline
 ---
 
-###JK: Good work! Nothing to revise :) ###
-
-
 ```{r}
 #| label: load-data
 #| include: false
