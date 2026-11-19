@@ -16,6 +16,12 @@ editor_options:
 h1Data <- read.csv("DATA/processed_data/CLAProject_h1.csv")
 h2Data <- read.csv ("DATA/processed_data/CLAProject_h2.csv")
 
+###JK: Keep education categorical when summarizing this H1 dataset. ###
+# cot_educ already contains labels such as Bachelor and Master, so as.numeric() changes all education responses to NA and hist(h1Data$educ) stops the document.
+# Use table(h1Data$cot_educ) for category counts and by(h1Data$geneqavg, h1Data$cot_educ, summary) for gender-equality summaries within each education group.
+# Remove the educ histograms and numerical calculations that depend on this conversion. Your summaries of geneqavg, attractimp, and commitmentavg are appropriate.
+###  End of comment ###
+
 h1Data$educ <- as.numeric((h1Data$cot_educ))
 
 
